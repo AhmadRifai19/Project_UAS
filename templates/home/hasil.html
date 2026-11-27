@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}SusuFuzzy - Hasil Evaluasi{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto animate-slide-up space-y-6">
+    <!-- Top Section -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">Hasil Evaluasi Fuzzy</h1>
+            <p class="text-sm text-slate-500 mt-1">Logika Fuzzy Mamdani - Skor Defuzzifikasi Centroid (1001 Titik Diskrit)</p>
+        </div>
+        <a href="{% url 'predict' %}" class="inline-flex items-center gap-2 text-sm font-bold text-brand-600 hover:text-brand-800 bg-brand-50 border border-brand-100 px-4 py-2.5 rounded-2xl transition-all duration-150">
+            <i class="fa-solid fa-rotate-left"></i> Uji Susu Lagi
+        </a>
+    </div>
+
+    <!-- Scorecard Section -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <!-- Main Score -->
+        <div class="col-span-1 bg-white rounded-3xl shadow-card border border-slate-200/80 p-6 flex flex-col justify-between h-44">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Skor Kualitas Susu</p>
+            <div class="my-auto">
+                <div class="text-5xl font-extrabold {% if result.kelas == 'high' %}text-teal-600{% elif result.kelas == 'medium' %}text-amber-600{% else %}text-rose-600{% endif %}">
+                    {{ result.skor }}<span class="text-sm text-slate-300 font-medium">/100</span>
+                </div>
+            </div>
+            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                <div class="h-full rounded-full {% if result.kelas == 'high' %}bg-teal-600{% elif result.kelas == 'medium' %}bg-amber-500{% else %}bg-rose-500{% endif %}" style="width: {{ result.skor }}%;"></div>
+            </div>
+        </div>
+        
+        <!-- Result Badge -->
+        <div class="bg-white rounded-3xl shadow-card border border-slate-200/80 p-6 flex flex-col justify-between h-44">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kualitas Hasil</p>
+            <div class="my-auto flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center {% if result.kelas == 'high' %}bg-teal-50 border border-teal-100{% elif result.kelas == 'medium' %}bg-amber-50 border border-amber-100{% else %}bg-rose-50 border border-rose-100{% endif %}">
+                    <i class="fa-solid {% if result.kelas == 'high' %}fa-circle-check text-teal-600{% elif result.kelas == 'medium' %}fa-minus text-amber-600{% else %}fa-triangle-exclamation text-rose-600{% endif %} text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-extrabold text-slate-800 leading-none">
+                        {% if result.kelas == 'high' %}Tinggi{% elif result.kelas == 'medium' %}Sedang{% else %}Rendah{% endif %}
+                    </p>
+                    <p class="text-xs text-slate-500 mt-1">Prediksi Sistem Cerdas</p>
+                </div>
+            </div>
+            <p class="text-[11px] text-slate-400">Berdasarkan <strong class="text-slate-600">1</strong> dari 3 aturan fuzzy aktif.</p>
+        </div>
+        
+        <!-- Input Summary -->
+        <div class="bg-slate-900 rounded-3xl text-slate-300 p-6 shadow-card h-44 flex flex-col">
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <i class="fa-solid fa-temperature-half text-xs"></i> Parameter Masuk
+            </p>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-white/5 rounded-lg p-2.5 border border-white/10">
+                    <p class="text-[10px] text-slate-500">pH</p>
+                    <p class="font-bold text-white text-sm">{{ ev.ph }}</p>
+                </div>
+                <div class="bg-white/5 rounded-lg p-2.5 border border-white/10">
+                    <p class="text-[10px] text-slate-500">Suhu</p>
+                    <p class="font-bold text-white text-sm">{{ ev.suhu }}°C</p>
+                </div>
+                <div class="bg-white/5 rounded-lg p-2.5 border border-white/10">
+                    <p class="text-[10px] text-slate-500">Indikator Fisik</p>
+                    <p class="font-bold text-white text-sm font-mono">{{ ev.rasa }}/{{ ev.bau }}/{{ ev.lemak }}/{{ ev.kekeruhan }}</p>
+                </div>
+                <div class="bg-white/5 rounded-lg p-2.5 border border-white/10">
+                    <p class="text-[10px] text-slate-500">Total Bernilai 1</p>
+                    <p class="font-bold text-brand-400 text-sm">{{ result.mu.total_bernilai_1 }}/4</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Fuzzy Analysis -->
+    <div class="bg-white rounded-3xl shadow-card border border-slate-200/80 p-8">
+        <h3 class="text-lg font-extrabold text-slate-900 mb-6 flex items-center gap-2">
+            <i class="fa-solid fa-microscope text-brand-600"></i> Analisis Derajat Keanggotaan
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Left: Input Membership -->
+            <div class="space-y-5">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">Input Fuzzifikasi (μ)</h4>
+                
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="text-sm font-semibold text-slate-700">pH Normal (6.2-6.4-6.8-7.0)</span>
+                        <span class="text-xs font-bold text-brand-600 bg-brand-50 border border-brand-100 px-2.5 py-1 rounded-lg">{{ result.mu.ph }}</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div class="bg-brand-600 h-full rounded-full transition-all duration-500" style="width: {% widthratio result.mu.ph 1 100 %}%;"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="text-sm font-semibold text-slate-700">Suhu Aman (25-34-45-50)</span>
+                        <span class="text-xs font-bold text-brand-600 bg-brand-50 border border-brand-100 px-2.5 py-1 rounded-lg">{{ result.mu.suhu }}</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div class="bg-brand-600 h-full rounded-full transition-all duration-500" style="width: {% widthratio result.mu.suhu 1 100 %}%;"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="text-sm font-semibold text-slate-700">Kondisi Baik (Crisp)</span>
+                        <span class="text-xs font-bold {% if result.mu.kondisi_baik == 1.0 %}text-emerald-600 bg-emerald-50 border border-emerald-100{% else %}text-rose-600 bg-rose-50 border border-rose-100{% endif %} px-2.5 py-1 rounded-lg">{{ result.mu.kondisi_baik|yesno:"Ya,Tidak" }}</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-500 {% if result.mu.kondisi_baik == 1.0 %}bg-emerald-500{% else %}bg-rose-500{% endif %}" style="width: {% widthratio result.mu.kondisi_baik 1 100 %}%;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right: Rule Alpha Strength -->
+            <div class="space-y-5">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">Kekuatan Aturan (α)</h4>
+                
+                <!-- Rule 1 -->
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="text-sm font-semibold text-slate-700">Aturan 1 (Rendah)</span>
+                        <span class="text-xs font-bold {% if result.alpha.low > 0 %}text-rose-600 bg-rose-50 border border-rose-100{% else %}text-slate-400 bg-slate-50 border border-slate-100{% endif %} px-2.5 py-1 rounded-lg">{{ result.alpha.low }}</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div class="bg-rose-500 h-full rounded-full transition-all duration-500" style="width: {% widthratio result.alpha.low 1 100 %}%;"></div>
+                    </div>
+                </div>
+                
+                <!-- Rule 2 -->
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="text-sm font-semibold text-slate-700">Aturan 2 (Sedang)</span>
+                        <span class="text-xs font-bold {% if result.alpha.medium > 0 %}text-amber-600 bg-amber-50 border border-amber-100{% else %}text-slate-400 bg-slate-50 border border-slate-100{% endif %} px-2.5 py-1 rounded-lg">{{ result.alpha.medium }}</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div class="bg-amber-500 h-full rounded-full transition-all duration-500" style="width: {% widthratio result.alpha.medium 1 100 %}%;"></div>
+                    </div>
+                </div>
+                
+                <!-- Rule 3 -->
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="text-sm font-semibold text-slate-700">Aturan 3 (Tinggi)</span>
+                        <span class="text-xs font-bold {% if result.alpha.high > 0 %}text-teal-600 bg-teal-50 border border-teal-100{% else %}text-slate-400 bg-slate-50 border border-slate-100{% endif %} px-2.5 py-1 rounded-lg">{{ result.alpha.high }}</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div class="bg-teal-500 h-full rounded-full transition-all duration-500" style="width: {% widthratio result.alpha.high 1 100 %}%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Active Rules Log -->
+        <div class="mt-10 pt-6 border-t border-slate-100">
+            <h4 class="text-sm font-extrabold text-slate-800 mb-4">Daftar Aturan yang Aktif (α > 0)</h4>
+            <div class="space-y-3">
+                {% for r in rules %}
+                {% if r.id == 1 and result.alpha.low > 0 or r.id == 2 and result.alpha.medium > 0 or r.id == 3 and result.alpha.high > 0 %}
+                <div class="p-4 rounded-2xl border border-brand-100 bg-brand-50/30 hover:bg-brand-50/60 transition-colors duration-150">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="font-bold text-slate-800 text-sm">{{ r.nama }}</p>
+                            <p class="text-slate-500 text-xs mt-1 leading-relaxed">{{ r.deskripsi }}</p>
+                        </div>
+                        <span class="inline-flex items-center text-xs font-bold text-white bg-brand-600 px-3 py-1 rounded-lg shadow-sm shrink-0">
+                            Aktif
+                        </span>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer Actions -->
+    <div class="flex items-center justify-between text-sm">
+        <p class="text-slate-500 font-medium">Evaluasi tercatat pada <span class="font-bold text-slate-800">{{ ev.dibuat_pada|date:"d M Y H:i" }}</span></p>
+        <div class="space-x-3">
+            <a href="{% url 'riwayat' %}" class="font-bold text-slate-600 hover:text-brand-600 transition-colors">Lihat Semua Riwayat →</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

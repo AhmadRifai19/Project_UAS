@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}SusuFuzzy - Uji Kualitas Susu{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto animate-slide-up">
+    <!-- Header Section -->
+    <div class="text-center mb-10">
+        <div class="inline-flex items-center gap-2 bg-brand-50 text-brand-700 border border-brand-100 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm mb-4">
+            <i class="fa-solid fa-vial"></i> Formulasi Input Data Fisik
+        </div>
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">Masukkan Parameter Susu</h1>
+        <p class="text-slate-500 mt-2 max-w-lg mx-auto">Isi data fisik susu di bawah ini untuk mendapatkan penilaian kualitas otomatis dari mesin fuzzy Mamdani.</p>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-card border border-slate-200/80 overflow-hidden">
+        <form method="post" class="p-8 md:p-10 space-y-10">
+            {% csrf_token %}
+            
+            <!-- 2 Kolom Utama: Parameter -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Kolom Kiri: pH & Suhu -->
+                <div class="space-y-6">
+                    <div>
+                        <label class="flex items-center text-sm font-bold text-slate-700 mb-2.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-brand-500 mr-2"></span> pH Susu (0.0 - 14.0)
+                        </label>
+                        {{ form.ph }}
+                        {% if form.ph.errors %}
+                        <p class="text-rose-600 text-xs mt-2 flex items-center gap-1.5"><i class="fa-solid fa-circle-exclamation"></i> {{ form.ph.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="flex items-center text-sm font-bold text-slate-700 mb-2.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-brand-500 mr-2"></span> Suhu Susu (0.0 - 100.0 °C)
+                        </label>
+                        {{ form.suhu }}
+                        {% if form.suhu.errors %}
+                        <p class="text-rose-600 text-xs mt-2 flex items-center gap-1.5"><i class="fa-solid fa-circle-exclamation"></i> {{ form.suhu.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="pt-4">
+                        <label class="flex items-center text-sm font-bold text-slate-700 mb-2.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-brand-500 mr-2"></span> Rasa (0=Buruk, 1=Baik)
+                        </label>
+                        {{ form.rasa }}
+                    </div>
+                    <div class="pt-4">
+                        <label class="flex items-center text-sm font-bold text-slate-700 mb-2.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-brand-500 mr-2"></span> Bau (0=Buruk, 1=Baik)
+                        </label>
+                        {{ form.bau }}
+                    </div>
+                </div>
+                
+                <!-- Kolom Kanan: Indikator 0/1 -->
+                <div class="bg-slate-50/50 border border-slate-100 rounded-2xl p-6 h-fit">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-8 h-8 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-500">
+                            <i class="fa-solid fa-list-check text-sm"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-sm">Indikator Fisik Biner</h3>
+                            <p class="text-[11px] text-slate-500">Pilih kondisi (1=Baik, 0=Buruk)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Lemak (0=Kurang, 1=Cukup)</label>
+                            {{ form.lemak }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Kekeruhan (0=Keruh, 1=Jernih)</label>
+                            {{ form.kekeruhan }}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 p-4 bg-brand-50/40 border border-brand-100 rounded-xl">
+                        <p class="text-[11px] text-brand-800 leading-relaxed">
+                            <i class="fa-solid fa-circle-info mr-1.5"></i>
+                            Jika total indikator bernilai <strong>1</strong> minimal <strong>2</strong>, maka sistem mengaktifkan status <strong>Kondisi Baik</strong> secara tegas.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="pt-2 border-t border-slate-100 flex flex-col sm:flex-row gap-4">
+                <button type="submit" class="w-full sm:w-auto flex-1 bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-6 rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-200 text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    Hitung Kualitas Susu
+                </button>
+                <a href="{% url 'index' %}" class="w-full sm:w-auto sm:flex-1 bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-600 font-bold py-3.5 px-6 rounded-2xl transition-all duration-200 text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Kembali
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    ul { list-style: none; padding: 0; margin: 0; }
+    li { margin-bottom: 0.5rem; }
+    input[type="radio"] { margin-right: 0.5rem; accent-color: #0d9488; }
+    .radio-indicator { width: 100%; }
+    .radio-indicator li {
+        display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+        background: white; border: 1px solid #e2e8f0; border-radius: 1rem;
+        padding: 0.5rem 1rem; margin: 0 0.25rem 0.25rem 0; transition: all 0.15s ease;
+    }
+    .radio-indicator li:has(input:checked) {
+        background: #f0fdfa; border-color: #0d9488; box-shadow: 0 2px 10px rgba(13, 148, 136, 0.08);
+    }
+    .radio-indicator label {
+        font-size: 0.75rem; font-weight: 600; color: #334155; cursor: pointer;
+    }
+    input[type="number"] {
+        width: 100%; padding: 0.6rem 1rem; border: 2px solid #e2e8f0; border-radius: 1rem;
+        font-size: 0.95rem; color: #0f172a; background-color: #f8fafc; transition: all 0.15s ease;
+    }
+    input[type="number"]:focus {
+        outline: none; border-color: #0d9488; box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1); background-color: white;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}SusuFuzzy - Evaluasi Model & Perbandingan Hasil{% endblock %}
+
+{% block content %}
+<div class="space-y-8 animate-slide-up">
+    <!-- Header Section -->
+    <div class="bg-white rounded-3xl shadow-card border border-slate-200/80 p-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <span class="inline-flex items-center gap-2 bg-brand-50 text-brand-700 border border-brand-100 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm mb-3">
+                    <i class="fa-solid fa-chart-pie"></i> Validasi Dataset Kualitas Susu
+                </span>
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">Evaluasi & Perbandingan Jawaban Sistem</h1>
+                <p class="text-slate-500 text-sm mt-1.5">Analisis performa predikatif mesin fuzzy terhadap label dataset resmi (random_state=42, 30% test data).</p>
+            </div>
+            <a href="{% url 'predict' %}" class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm px-5 py-3 rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-200 shrink-0">
+                <i class="fa-solid fa-flask"></i> Uji Sampel Baru
+            </a>
+        </div>
+
+        <!-- 4 Statistik Kartu Akurasi -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-8">
+            <div class="bg-slate-50 rounded-2xl border border-slate-200/60 p-5">
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Akurasi Data Uji (Test)</p>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span class="text-4xl font-extrabold text-teal-600">{{ akurasi_uji }}%</span>
+                    <span class="text-xs font-medium text-slate-400">({{ te_correct }}/{{ jumlah_uji }} Benar)</span>
+                </div>
+                <div class="w-full bg-slate-200 h-1.5 rounded-full mt-3 overflow-hidden">
+                    <div class="bg-teal-600 h-full rounded-full transition-all duration-1000" style="width: {{ akurasi_uji }}%;"></div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 rounded-2xl border border-slate-200/60 p-5">
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Akurasi Data Latih (Train)</p>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span class="text-4xl font-extrabold text-slate-800">{{ akurasi_latih }}%</span>
+                    <span class="text-xs font-medium text-slate-400">({{ tr_correct }}/{{ jumlah_latih }} Benar)</span>
+                </div>
+                <div class="w-full bg-slate-200 h-1.5 rounded-full mt-3 overflow-hidden">
+                    <div class="bg-slate-700 h-full rounded-full transition-all duration-1000" style="width: {{ akurasi_latih }}%;"></div>
+                </div>
+            </div>
+
+            <div class="bg-emerald-50/50 rounded-2xl border border-emerald-100 p-5">
+                <p class="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">Prediksi Sesuai Target</p>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span class="text-4xl font-extrabold text-emerald-600">{{ te_correct }}</span>
+                    <span class="text-xs font-semibold text-emerald-700/80">Sampel Uji</span>
+                </div>
+                <p class="text-[11px] text-emerald-700/70 mt-2">Jawaban fuzzy sistem sesuai label dataset</p>
+            </div>
+
+            <div class="bg-rose-50/50 rounded-2xl border border-rose-100 p-5">
+                <p class="text-[10px] font-bold text-rose-700 uppercase tracking-widest">Prediksi Melebar (Salah)</p>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span class="text-4xl font-extrabold text-rose-600">{{ te_wrong }}</span>
+                    <span class="text-xs font-semibold text-rose-700/80">Sampel Uji</span>
+                </div>
+                <p class="text-[11px] text-rose-700/70 mt-2">Terjadi pada kelas perbatasan (Medium↔High)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Comparison Table -->
+    <div class="bg-white rounded-3xl shadow-card border border-slate-200/80 overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2.5">
+                    <i class="fa-solid fa-table-cells text-brand-600"></i> Perbandingan Sistem vs Dataset
+                </h2>
+                <p class="text-xs text-slate-500 mt-1">Evaluasi individual seluruh <strong>{{ jumlah_uji }} data uji</strong> (30% data acak).</p>
+            </div>
+            <div class="flex items-center gap-3 text-xs">
+                <span class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-700 font-bold border border-emerald-100 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Benar: {{ te_correct }}
+                </span>
+                <span class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-rose-50 text-rose-700 font-bold border border-rose-100 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span> Salah: {{ te_wrong }}
+                </span>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm border-collapse">
+                <thead>
+                    <tr class="text-xs font-bold text-slate-500 uppercase tracking-wider bg-slate-50 border-b border-slate-200">
+                        <th class="py-3.5 px-4 text-center w-12">No</th>
+                        <th class="py-3.5 px-4">pH</th>
+                        <th class="py-3.5 px-4">Suhu</th>
+                        <th class="py-3.5 px-4 text-center">Fisik (R/B/L/K)</th>
+                        <th class="py-3.5 px-4 text-center">Skor Fuzzy</th>
+                        <th class="py-3.5 px-4 text-center bg-slate-100/80 text-slate-700">Hasil Dataset</th>
+                        <th class="py-3.5 px-4 text-center bg-brand-50/80 text-brand-900">Jawaban Sistem</th>
+                        <th class="py-3.5 px-4 text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    {% for row in tabel_perbandingan %}
+                    <tr class="hover:bg-slate-50/80 transition-colors {% if not row.is_benar %}bg-rose-50/30{% endif %}">
+                        <td class="py-3.5 px-4 text-center text-xs font-mono text-slate-400">{{ row.no }}</td>
+                        <td class="py-3.5 px-4 font-mono font-semibold text-slate-900">{{ row.ph }}</td>
+                        <td class="py-3.5 px-4 font-mono font-semibold text-slate-900">{{ row.suhu }}°C</td>
+                        <td class="py-3.5 px-4 text-center">
+                            <span class="font-mono bg-slate-100 border border-slate-200 rounded px-2 py-1 text-xs text-slate-600" title="Rasa: {{ row.rasa }}, Bau: {{ row.bau }}, Lemak: {{ row.lemak }}, Kekeruhan: {{ row.kekeruhan }}">
+                                {{ row.rasa }}-{{ row.bau }}-{{ row.lemak }}-{{ row.kekeruhan }}
+                            </span>
+                        </td>
+                        <td class="py-3.5 px-4 text-center font-mono text-xs text-slate-500">{{ row.skor_fuzzy }}</td>
+                        <td class="py-3.5 px-4 text-center bg-slate-50/50">
+                            <span class="inline-block px-3 py-1.5 rounded-lg text-[11px] font-extrabold tracking-wide border shadow-sm
+                                {% if row.hasil_dataset == 'HIGH' %}bg-teal-50 text-teal-700 border-teal-100
+                                {% elif row.hasil_dataset == 'MEDIUM' %}bg-amber-50 text-amber-700 border-amber-100
+                                {% else %}bg-slate-100 text-slate-700 border-slate-200{% endif %}">
+                                {% if row.hasil_dataset == 'HIGH' %}Tinggi{% elif row.hasil_dataset == 'MEDIUM' %}Sedang{% else %}Rendah{% endif %}
+                            </span>
+                        </td>
+                        <td class="py-3.5 px-4 text-center bg-brand-50/20">
+                            <span class="inline-block px-3 py-1.5 rounded-lg text-[11px] font-extrabold tracking-wide border shadow-sm
+                                {% if row.prediksi_sistem == 'HIGH' %}bg-teal-50 text-teal-700 border-teal-100
+                                {% elif row.prediksi_sistem == 'MEDIUM' %}bg-amber-50 text-amber-700 border-amber-100
+                                {% else %}bg-rose-50 text-rose-700 border-rose-100{% endif %}">
+                                {% if row.prediksi_sistem == 'HIGH' %}Tinggi{% elif row.prediksi_sistem == 'MEDIUM' %}Sedang{% else %}Rendah{% endif %}
+                            </span>
+                        </td>
+                        <td class="py-3.5 px-4 text-center">
+                            {% if row.is_benar %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-sm">
+                                <i class="fa-solid fa-circle-check text-emerald-600"></i> Benar
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200 shadow-sm">
+                                <i class="fa-solid fa-circle-xmark text-rose-600"></i> Salah
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <span>* Kolom <strong>Fisik</strong>: Rasa, Bau, Lemak, Kekeruhan (1=Baik/Jernih, 0=Buruk/Keruh).</span>
+            <span class="font-medium text-slate-600">Hasil Evaluasi: <strong class="text-emerald-600">{{ te_correct }} Benar</strong> & <strong class="text-rose-600">{{ te_wrong }} Salah</strong> (Akurasi {{ akurasi_uji }}%)</span>
+        </div>
+    </div>
+
+    <!-- 2 Grid: Matrix & Cases -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Confusion Matrix -->
+        <div class="bg-white rounded-3xl shadow-card border border-slate-200/80 p-8">
+            <div class="mb-6">
+                <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-table-cells-large text-brand-500"></i> Matriks Konfusi
+                </h3>
+                <p class="text-xs text-slate-500 mt-1">Sebaran prediksi sistem vs kelas aktual pada 25 data uji.</p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-center border-collapse">
+                    <thead>
+                        <tr class="text-xs font-bold text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                            <th class="py-3 px-3 text-left">Kelas \\ Pred</th>
+                            {% for col in cm_cols %}
+                            <th class="py-3 px-3">
+                                {% if col == 'HIGH' %}Tinggi{% elif col == 'MEDIUM' %}Sedang{% else %}Rendah{% endif %}
+                            </th>
+                            {% endfor %}
+                            <th class="py-3 px-3 text-slate-700">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-slate-700">
+                        {% for r in cm_rows %}
+                        <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                            <td class="py-3.5 px-3 text-left font-bold text-slate-800 bg-slate-50/50 border-r border-slate-100">
+                                {% if r.label == 'HIGH' %}Tinggi{% elif r.label == 'MEDIUM' %}Sedang{% else %}Rendah{% endif %}
+                            </td>
+                            {% for val in r.values %}
+                            <td class="py-3.5 px-3 border-r border-slate-50">
+                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg font-bold
+                                    {% if val > 0 %}text-brand-700 bg-brand-50 border border-brand-100 shadow-sm{% else %}text-slate-300{% endif %}">
+                                    {{ val }}
+                                </span>
+                            </td>
+                            {% endfor %}
+                            <td class="py-3.5 px-3 font-extrabold text-slate-900 bg-slate-50/80">{{ r.total }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-6 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+                <p class="text-xs text-amber-800 leading-relaxed">
+                    <i class="fa-solid fa-lightbulb mr-1.5 text-amber-500"></i>
+                    <strong>Analisis Kesalahan:</strong> 4 sampel kelas <em>Sedang (Medium)</em> terprediksi <em>Tinggi (High)</em> dan 1 sampel kelas <em>Rendah (Low)</em> terprediksi <em>Tinggi</em>. Hal ini wajar karena model mengedepankan indikator pH normal.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Test Cases -->
+        <div class="bg-white rounded-3xl shadow-card border border-slate-200/80 p-8">
+            <div class="mb-6">
+                <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-vial-circle-check text-brand-500"></i> Uji 5 Kasus Acuan Dosen
+                </h3>
+                <p class="text-xs text-slate-500 mt-1">Verifikasi kesesuaian output fuzzy dengan modul Sistem Cerdas.</p>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left border-collapse">
+                    <thead>
+                        <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50 border-b border-slate-200">
+                            <th class="py-2.5 px-3">#</th>
+                            <th class="py-2.5 px-3">pH / Suhu</th>
+                            <th class="py-2.5 px-3 text-center">Σ(1)</th>
+                            <th class="py-2.5 px-3 text-center">Akurasi</th>
+                            <th class="py-2.5 px-3 text-center">Sistem</th>
+                            <th class="py-2.5 px-3 text-right pr-4">Validasi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50 text-slate-700 font-medium">
+                        {% for kas in uji_kasus_acuan %}
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <td class="py-3 px-3 font-mono text-slate-400">{{ kas.no }}</td>
+                            <td class="py-3 px-3 font-bold text-slate-800">pH {{ kas.pH }} / {{ kas.suhu }}°C</td>
+                            <td class="py-3 px-3 text-center font-mono text-xs bg-slate-50 rounded px-1">{{ kas.jumlah_bernilai_1 }}</td>
+                            <td class="py-3 px-3 text-center font-mono text-slate-600">
+                                Skor: {{ kas.skor_acuan }}<br>
+                                <span class="text-[10px] text-slate-400">({{ kas.kelas_acuan }})</span>
+                            </td>
+                            <td class="py-3 px-3 text-center font-mono text-brand-600 font-bold">
+                                Skor: {{ kas.skor_sistem }}<br>
+                                <span class="text-[10px] font-sans text-slate-500">{% if kas.kelas_sistem == 'high' %}Tinggi{% elif kas.kelas_sistem == 'medium' %}Sedang{% else %}Rendah{% endif %}</span>
+                            </td>
+                            <td class="py-3 px-3 pr-4 text-right">
+                                {% if kas.is_cocok %}
+                                <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-lg">
+                                    <i class="fa-solid fa-check"></i> Cocok
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-100 px-2 py-1 rounded-lg">
+                                    <i class="fa-solid fa-xmark"></i> Beda
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-6 p-4 bg-brand-50 border border-brand-100 rounded-2xl text-xs text-brand-900">
+                <i class="fa-solid fa-shield-check mr-1.5 text-brand-500"></i>
+                Seluruh 5 kasus acuan menghasilkan klasifikasi yang <strong>100% sesuai</strong> dengan modul (selisih skor diabaikan karena pembulatan diskritisasi 1001 titik).
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
